@@ -71,6 +71,7 @@ public class PluginBootstrap {
             }
         }
 
+        // 加载基于 xml 定义的插件
         plugins.addAll(DynamicPluginLoader.INSTANCE.load(AgentClassLoader.getDefault()));
 
         return plugins;

@@ -40,6 +40,7 @@ import static net.bytebuddy.matcher.ElementMatchers.not;
  * AbstractClassEnhancePluginDefine} list.
  */
 public class PluginFinder {
+    // 对于同一个类，可能有多个插件进行字节码增强
     private final Map<String, LinkedList<AbstractClassEnhancePluginDefine>> nameMatchDefine = new HashMap<String, LinkedList<AbstractClassEnhancePluginDefine>>();
     private final List<AbstractClassEnhancePluginDefine> signatureMatchDefine = new ArrayList<AbstractClassEnhancePluginDefine>();
     private final List<AbstractClassEnhancePluginDefine> bootstrapClassMatchDefine = new ArrayList<AbstractClassEnhancePluginDefine>();
@@ -64,12 +65,20 @@ public class PluginFinder {
                 signatureMatchDefine.add(plugin);
             }
 
+            // 对 jdk 类库进行增强
             if (plugin.isBootstrapInstrumentation()) {
                 bootstrapClassMatchDefine.add(plugin);
             }
         }
     }
 
+    /**
+     * 查找能够对指定类型生效的插件
+     *      1. 从命名插件中找
+     *      2. 从间接匹配插件中找
+     * @param typeDescription
+     * @return
+     */
     public List<AbstractClassEnhancePluginDefine> find(TypeDescription typeDescription) {
         List<AbstractClassEnhancePluginDefine> matchedPlugins = new LinkedList<AbstractClassEnhancePluginDefine>();
         String typeName = typeDescription.getTypeName();
@@ -94,6 +103,7 @@ public class PluginFinder {
                 return nameMatchDefine.containsKey(target.getActualName());
             }
         };
+        // 排除接口
         judge = judge.and(not(isInterface()));
         for (AbstractClassEnhancePluginDefine define : signatureMatchDefine) {
             ClassMatch match = define.enhanceClass();

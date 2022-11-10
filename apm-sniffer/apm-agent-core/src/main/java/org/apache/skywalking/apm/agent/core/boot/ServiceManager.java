@@ -72,14 +72,15 @@ public enum ServiceManager {
             } else {
                 OverrideImplementor overrideImplementor = bootServiceClass.getAnnotation(OverrideImplementor.class);
                 if (overrideImplementor == null) {
+                    // 没有 @DefaultImplementor 也没有 @OverrideImplementor
                     if (!bootedServices.containsKey(bootServiceClass)) {
                         bootedServices.put(bootServiceClass, bootService);
                     } else {
                         throw new ServiceConflictException("Duplicate service define for :" + bootServiceClass);
                     }
-                } else {
+                } else { // 没有 @DefaultImplementor 但是有 @OverrideImplementor
                     Class<? extends BootService> targetService = overrideImplementor.value();
-                    if (bootedServices.containsKey(targetService)) {
+                    if (bootedServices.containsKey(targetService)) { //当前 覆盖实现 要覆盖的 默认实现 已经被加载进来，
                         boolean presentDefault = bootedServices.get(targetService)
                                                                .getClass()
                                                                .isAnnotationPresent(DefaultImplementor.class);
@@ -90,6 +91,7 @@ public enum ServiceManager {
                                 "Service " + bootServiceClass + " overrides conflict, " + "exist more than one service want to override :" + targetService);
                         }
                     } else {
+                        // 当前 覆盖实现 要覆盖的 默认实现 还没有被加载进来，这时候把这个 覆盖实现 当做是其他服务的 默认实现
                         bootedServices.put(targetService, bootService);
                     }
                 }

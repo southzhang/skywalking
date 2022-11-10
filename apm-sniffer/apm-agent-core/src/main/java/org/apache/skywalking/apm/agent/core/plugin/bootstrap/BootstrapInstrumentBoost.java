@@ -86,6 +86,7 @@ public class BootstrapInstrumentBoost {
 
     public static AgentBuilder inject(PluginFinder pluginFinder, Instrumentation instrumentation,
         AgentBuilder agentBuilder, JDK9ModuleExporter.EdgeClasses edgeClasses) throws PluginException {
+        // 所有要注入到 BootstrapClassLoader 里的类
         Map<String, byte[]> classesTypeMap = new HashMap<>();
 
         if (!prepareJREInstrumentation(pluginFinder, classesTypeMap)) {

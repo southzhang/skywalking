@@ -27,5 +27,10 @@ import net.bytebuddy.matcher.ElementMatcher;
 public interface IndirectMatch extends ClassMatch {
     ElementMatcher.Junction buildJunction();
 
+    /**
+     * TypeDescription 可以当成 class
+     * @param typeDescription
+     * @return
+     */
     boolean isMatch(TypeDescription typeDescription);
 }

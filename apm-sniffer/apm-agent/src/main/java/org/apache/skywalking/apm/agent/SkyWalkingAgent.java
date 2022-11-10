@@ -91,8 +91,10 @@ public class SkyWalkingAgent {
         }
 
         // 3. 定制agent 行为
+        // 3.1 创建 byteBuddy 的实例
         final ByteBuddy byteBuddy = new ByteBuddy().with(TypeValidation.of(Config.Agent.IS_OPEN_DEBUGGING_CLASS));
 
+        // 3.2 指定 byteBuddy 要忽略的类
         AgentBuilder agentBuilder = new AgentBuilder.Default(byteBuddy).ignore(
                 nameStartsWith("net.bytebuddy.")
                         .or(nameStartsWith("org.slf4j."))
@@ -106,6 +108,7 @@ public class SkyWalkingAgent {
 
         JDK9ModuleExporter.EdgeClasses edgeClasses = new JDK9ModuleExporter.EdgeClasses();
         try {
+            // 3.3 将必要的类注入到 BootstrapClassLoader
             agentBuilder = BootstrapInstrumentBoost.inject(pluginFinder, instrumentation, agentBuilder, edgeClasses);
         } catch (Exception e) {
             LOGGER.error(e, "SkyWalking agent inject bootstrap instrumentation failure. Shutting down.");
@@ -113,12 +116,14 @@ public class SkyWalkingAgent {
         }
 
         try {
+            // 3.4 解决JDK模块系统的跨模块访问，绕开 jdk9 模块系统
             agentBuilder = JDK9ModuleExporter.openReadEdge(instrumentation, agentBuilder, edgeClasses);
         } catch (Exception e) {
             LOGGER.error(e, "SkyWalking agent open read edge in JDK 9+ failure. Shutting down.");
             return;
         }
 
+        // 3.5 根据配置，是否需要将修改后的字节码保存到磁盘/内存
         if (Config.Agent.IS_CACHE_ENHANCED_CLASS) {
             try {
                 agentBuilder = agentBuilder.with(new CacheableTransformerDecorator(Config.Agent.CLASS_CACHE_MODE));
@@ -128,12 +133,20 @@ public class SkyWalkingAgent {
             }
         }
 
-        agentBuilder.type(pluginFinder.buildMatch())
-                    .transform(new Transformer(pluginFinder))
-                    .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                    .with(new RedefinitionListener())
-                    .with(new Listener())
-                    .installOn(instrumentation);
+        // 3.6 定制细节
+        agentBuilder.type(pluginFinder.buildMatch())//指定 byteBuddy 要拦截的类
+                // 指定做字节码增强的工具
+                .transform(new Transformer(pluginFinder))
+                // 指定做字节码增强的模式
+                // redefine: 覆盖度被修改的内容
+                // retransform：保留被修改的内容
+                // redefine 和 retransform 的区别在于是否保留修改前的内容
+                .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
+                // 注册监听器
+                .with(new RedefinitionListener())
+                .with(new Listener())
+                // 将 agent 安装到 instrumentation
+                .installOn(instrumentation);
 
         // 4. 启动服务
         try {
@@ -155,9 +168,9 @@ public class SkyWalkingAgent {
         }
 
         @Override
-        public DynamicType.Builder<?> transform(final DynamicType.Builder<?> builder,
-                                                final TypeDescription typeDescription,
-                                                final ClassLoader classLoader,
+        public DynamicType.Builder<?> transform(final DynamicType.Builder<?> builder, // 当前拦截到的类的字节码
+                                                final TypeDescription typeDescription, // 简单当成 class,包含了类的描述信息
+                                                final ClassLoader classLoader, // 加载 【前拦截到的类】 的拦截器
                                                 final JavaModule module) {
             LoadedLibraryCollector.registerURLClassLoader(classLoader);
             List<AbstractClassEnhancePluginDefine> pluginDefines = pluginFinder.find(typeDescription);
