@@ -89,6 +89,13 @@ public class BootstrapInstrumentBoost {
         // 所有要注入到 BootstrapClassLoader 里的类
         Map<String, byte[]> classesTypeMap = new HashMap<>();
 
+        /**
+         * 针对于目标类是 jdk 核心类库的插件，这里根据插件的拦截点的不同（实例方法、静态方法、构造方法）
+         * 使用不同的模板（xxxTemplate）来定义新的拦截器的核心处理逻辑，并且将插件本身定义的拦截器的全类名
+         * 赋值给模板的 TARGET_INTERCEPTOR 字段
+         *
+         * 最终，这些新的拦截器的核心处理逻辑都会被放入 Bootstrap Classloader 中
+         */
         if (!prepareJREInstrumentation(pluginFinder, classesTypeMap)) {
             return agentBuilder;
         }

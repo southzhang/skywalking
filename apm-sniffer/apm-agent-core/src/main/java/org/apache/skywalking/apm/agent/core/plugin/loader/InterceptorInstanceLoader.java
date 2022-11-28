@@ -36,6 +36,10 @@ public class InterceptorInstanceLoader {
 
     private static ConcurrentHashMap<String, Object> INSTANCE_CACHE = new ConcurrentHashMap<String, Object>();
     private static ReentrantLock INSTANCE_LOAD_LOCK = new ReentrantLock();
+    /**
+     * key: 加载当前插件要拦截的那个类的类加载器
+     * value: 既能加载插件类加载器，又能加载要拦截的那个类 的 类加载器
+     */
     private static Map<ClassLoader, ClassLoader> EXTEND_PLUGIN_CLASSLOADERS = new HashMap<ClassLoader, ClassLoader>();
 
     /**
