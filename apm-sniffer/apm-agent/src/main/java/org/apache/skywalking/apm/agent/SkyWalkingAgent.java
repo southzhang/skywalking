@@ -187,11 +187,12 @@ public class SkyWalkingAgent {
                 if (context.isEnhanced()) {
                     LOGGER.debug("Finish the prepare stage for {}.", typeDescription.getName());
                 }
-
+                // 被所有可用插件修改完之后的最终字节码
                 return newBuilder;
             }
 
             LOGGER.debug("Matched class {}, but ignore by finding mechanism.", typeDescription.getTypeName());
+            // 被拦截到的类的原生字节码
             return builder;
         }
     }

@@ -80,7 +80,7 @@ public class StaticMethodsInter {
             if (!result.isContinue()) {
                 ret = result._ret();
             } else {
-                ret = zuper.call();
+                ret = zuper.call();// 原方法的调用
             }
         } catch (Throwable t) {
             try {

@@ -28,8 +28,10 @@ import java.lang.reflect.Method;
  * MethodInterceptResult#defineReturnValue(Object)}, will override the origin return value.
  */
 public class MethodInterceptResult {
+    // 当前 intercept 主流程是否需要继续进行
     private boolean isContinue = true;
 
+    // 最终的返回值
     private Object ret = null;
 
     /**
